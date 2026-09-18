@@ -20,7 +20,7 @@ WHITELIST_FILE: Path = ROOT_DIR / "OnePlus-Whitelist.txt"
 
 # Default identifiers
 DEFAULT_UPSTREAM_REPO: str = "mardous/BoomingMusic"
-DEFAULT_PACKAGE_NAME: str = "com.tencent.qqmusic"
+DEFAULT_PACKAGE_NAME: str = "com.salt.music"
 DEFAULT_FLAVOR: str = "github"
 
 # Build configurations

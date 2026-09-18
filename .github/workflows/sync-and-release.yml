@@ -14,7 +14,7 @@ on:
       package_name:
         description: 'Target package name for audio enhancement whitelist'
         required: true
-        default: 'com.tencent.qqmusic'
+        default: 'com.salt.music'
         type: string
       force_build:
         description: 'Force build even if tag already exists in this repository'
@@ -82,7 +82,7 @@ jobs:
           python -m scripts.main sync \
             --tag "${{ needs.check-upstream.outputs.tag_name }}" \
             --upstream "mardous/BoomingMusic" \
-            --package "${{ inputs.package_name || 'com.tencent.qqmusic' }}" \
+            --package "${{ inputs.package_name || 'com.salt.music' }}" \
             --dir BoomingMusic
 
       - name: Setup Java JDK 21
@@ -121,12 +121,12 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.check-upstream.outputs.tag_name }}
-          name: "Booming Music ${{ needs.check-upstream.outputs.tag_name }} [${{ inputs.package_name || 'com.tencent.qqmusic' }}]"
+          name: "Booming Music ${{ needs.check-upstream.outputs.tag_name }} [${{ inputs.package_name || 'com.salt.music' }}]"
           body: |
-            ## 🎵 Booming Music (${{ inputs.package_name || 'com.tencent.qqmusic' }})
+            ## 🎵 Booming Music (${{ inputs.package_name || 'com.salt.music' }})
 
             > [!TIP]
-            > **Audio Enhancement Whitelist**: This build modifies the application ID to `${{ inputs.package_name || 'com.tencent.qqmusic' }}` so OnePlus, OPPO, and Realme devices activate system-level audio enhancement algorithms (Dolby Atmos, Dirac Sound, OReality).
+            > **Audio Enhancement Whitelist**: This build modifies the application ID to `${{ inputs.package_name || 'com.salt.music' }}` so OnePlus, OPPO, and Realme devices activate system-level audio enhancement algorithms (Dolby Atmos, Dirac Sound, OReality).
 
             ### Upstream Release Notes (${{ needs.check-upstream.outputs.tag_name }})
             ${{ needs.check-upstream.outputs.release_body }}

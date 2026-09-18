@@ -1,6 +1,6 @@
 # BoomingMusic Package Name Changer & Auto-Releaser
 
-Automated CI/CD suite that monitors upstream releases of [BoomingMusic](https://github.com/mardous/BoomingMusic), changes the Android application ID to `com.tencent.qqmusic` (or any other package from the OnePlus/OPPO whitelist), compiles the release APKs, and publishes them directly to your repository's GitHub Releases.
+Automated CI/CD suite that monitors upstream releases of [BoomingMusic](https://github.com/mardous/BoomingMusic), changes the Android application ID to `com.salt.music` (or any other package from the OnePlus/OPPO whitelist), compiles the release APKs, and publishes them directly to your repository's GitHub Releases.
 
 ---
 
@@ -11,7 +11,7 @@ Certain smartphone manufacturers (particularly **OnePlus**, **OPPO**, and **Real
 - **Dirac Audio Tuner**
 - **OReality Audio**
 
-By rewriting the package ID to an audio-whitelisted package name like `com.tencent.qqmusic`, the operating system treats BoomingMusic as a recognized music application and applies full hardware audio post-processing.
+By rewriting the package ID to an audio-whitelisted package name like `com.salt.music`, the operating system treats BoomingMusic as a recognized music application and applies full hardware audio post-processing without triggering OxygenOS's aggressive stock icon overrides (which happen with popular Chinese apps like `com.tencent.qqmusic`).
 
 A full list of recognized package names is available in [`OnePlus-Whitelist.txt`](OnePlus-Whitelist.txt).
 
