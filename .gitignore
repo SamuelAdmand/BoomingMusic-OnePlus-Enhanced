@@ -1,0 +1,35 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.bak
+
+
+# Gradle & Android build files
+.gradle/
+build/
+app/build/
+*.apk
+*.aab
+local.properties
+keystore.properties
+*.jks
+*.keystore
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+
+# OS specific
+Thumbs.db
+.DS_Store
+
+# Temporary files
+temp/
+scratch/
+temp.properties
+
+# Cloned upstream working directories
+BoomingMusic/
+

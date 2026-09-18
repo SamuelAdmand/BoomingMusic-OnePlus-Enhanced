@@ -1,0 +1,138 @@
+name: Upstream Sync & Whitelist Package Release
+
+on:
+  schedule:
+    # Runs automatically every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      target_tag:
+        description: 'Specific upstream tag to release (leave empty for latest)'
+        required: false
+        default: ''
+        type: string
+      package_name:
+        description: 'Target package name for audio enhancement whitelist'
+        required: true
+        default: 'com.tencent.qqmusic'
+        type: string
+      force_build:
+        description: 'Force build even if tag already exists in this repository'
+        required: false
+        default: false
+        type: boolean
+      flavor:
+        description: 'Android product flavor to assemble'
+        required: true
+        default: 'github'
+        type: choice
+        options:
+          - github
+          - fdroid
+
+permissions:
+  contents: write
+
+jobs:
+  check-upstream:
+    name: Check Upstream Release
+    runs-on: ubuntu-latest
+    outputs:
+      needs_build: ${{ steps.check.outputs.needs_build }}
+      tag_name: ${{ steps.check.outputs.tag_name }}
+      release_title: ${{ steps.check.outputs.release_title }}
+      release_body: ${{ steps.check.outputs.release_body }}
+      is_prerelease: ${{ steps.check.outputs.is_prerelease }}
+    steps:
+      - name: Checkout automation scripts
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Check for new upstream release
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python -m scripts.main check \
+            --upstream "mardous/BoomingMusic" \
+            --target-repo "${{ github.repository }}" \
+            --tag "${{ inputs.target_tag }}" \
+            ${{ inputs.force_build && '--force' || '' }}
+
+  build-and-release:
+    name: Build and Release Modified APK
+    needs: check-upstream
+    if: needs.check-upstream.outputs.needs_build == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout automation repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Setup Java JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'zulu'
+          cache: gradle
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Sync upstream tag and apply package patch
+        run: |
+          python -m scripts.main sync \
+            --tag "${{ needs.check-upstream.outputs.tag_name }}" \
+            --upstream "mardous/BoomingMusic" \
+            --package "${{ inputs.package_name || 'com.tencent.qqmusic' }}" \
+            --dir BoomingMusic
+
+      - name: Make Gradle executable
+        run: chmod +x ./BoomingMusic/gradlew
+
+      - name: Assemble Release APK
+        env:
+          SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+        run: |
+          python -m scripts.main build \
+            --flavor "${{ inputs.flavor || 'github' }}" \
+            --dir BoomingMusic
+
+      - name: Upload APK Artifacts to GitHub Action
+        uses: actions/upload-artifact@v4
+        with:
+          name: "BoomingMusic-${{ needs.check-upstream.outputs.tag_name }}-${{ inputs.flavor || 'github' }}"
+          path: BoomingMusic/app/build/outputs/apk/*/release/*.apk
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.check-upstream.outputs.tag_name }}
+          name: "Booming Music ${{ needs.check-upstream.outputs.tag_name }} [${{ inputs.package_name || 'com.tencent.qqmusic' }}]"
+          body: |
+            ## 🎵 Booming Music (${{ inputs.package_name || 'com.tencent.qqmusic' }})
+
+            > [!TIP]
+            > **Audio Enhancement Whitelist**: This build modifies the application ID to `${{ inputs.package_name || 'com.tencent.qqmusic' }}` so OnePlus, OPPO, and Realme devices activate system-level audio enhancement algorithms (Dolby Atmos, Dirac Sound, OReality).
+
+            ### Upstream Release Notes (${{ needs.check-upstream.outputs.tag_name }})
+            ${{ needs.check-upstream.outputs.release_body }}
+          files: BoomingMusic/app/build/outputs/apk/*/release/*.apk
+          prerelease: ${{ needs.check-upstream.outputs.is_prerelease == 'true' }}
+          draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
